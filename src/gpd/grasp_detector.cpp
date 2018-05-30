@@ -388,6 +388,12 @@ std::vector<GraspSet> GraspDetector::filterGraspsWorkspace(const std::vector<Gra
         z << left_bottom(2), right_bottom(2), left_top(2), right_top(2), approach(2);
         double aperture = hands[j].getGraspWidth();
 
+//        printf("workspace: %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", workspace[0], workspace[1], workspace[2], workspace[3], workspace[4], workspace[5]);
+//        printf("width: %.3f, %.3f, %.3f\n", aperture, min_aperture_, max_aperture_);
+//        std::cout << "x: " << x.transpose() << " " << x.minCoeff() << " " << x.maxCoeff() << "\n";
+//        std::cout << "y: " << y.transpose() << " " << y.minCoeff() << " " << y.maxCoeff() << "\n";
+//        std::cout << "z: " << z.transpose() << " " << z.minCoeff() << " " << z.maxCoeff() << "\n";
+
         if (aperture >= min_aperture_ && aperture <= max_aperture_ // make sure the object fits into the hand
           && x.minCoeff() >= workspace[0] && x.maxCoeff() <= workspace[1] // avoid grasping outside the x-workspace
           && y.minCoeff() >= workspace[2] && y.maxCoeff() <= workspace[3] // avoid grasping outside the y-workspace
