@@ -79,11 +79,9 @@ GraspDetector::GraspDetector(ros::NodeHandle& node)
   min_aperture_ = gripper_width_range[0];
   max_aperture_ = gripper_width_range[1];
 
-  node.param("filter_table_side_grasps", filter_table_side_grasps_, false);
-  node.getParam("vertical_axis", vert_axis_);
+  node.param("filter_grasps_approach", filter_grasps_approach_, false);
+  node.getParam("filter_axis", filter_axis_);
   node.param("angle_thresh", angle_thresh_, 0.1);
-  node.param("table_height", table_height_, 0.5);
-  node.param("table_thresh", table_thresh_, 0.05);
 
   // Read clustering parameters
   int min_inliers;
@@ -144,15 +142,22 @@ std::vector<Grasp> GraspDetector::detectGrasps(const CloudCamera& cloud_cam)
     if (plot_filtered_grasps_)
     {
       const HandSearch::Parameters& params = candidates_generator_->getHandSearchParams();
-      plotter.plotFingers3D(candidates, cloud_cam.getCloudOriginal(), "Valid Grasps", params.hand_outer_diameter_,
+      plotter.plotFingers3D(candidates, cloud_cam.getCloudOriginal(), "Valid Grasps (after workspace filter)", params.hand_outer_diameter_,
         params.finger_width_, params.hand_depth_, params.hand_height_);
     }
   }
 
   // 2.2 Filter side grasps that are very close to the table.
-  if (filter_table_side_grasps_)
+  if (filter_grasps_approach_)
   {
-    candidates = filterSideGraspsCloseToTable(candidates);
+    candidates = filterGraspsApproach(candidates);
+
+    if (plot_filtered_grasps_)
+    {
+      const HandSearch::Parameters& params = candidates_generator_->getHandSearchParams();
+      plotter.plotFingers3D(candidates, cloud_cam.getCloudOriginal(), "Valid Grasps (after approach filter)", params.hand_outer_diameter_,
+        params.finger_width_, params.hand_depth_, params.hand_height_);
+    }
   }
 
   // 2.3 Filter half grasps.
@@ -422,14 +427,12 @@ std::vector<GraspSet> GraspDetector::filterGraspsWorkspace(const std::vector<Gra
 }
 
 
-std::vector<GraspSet> GraspDetector::filterSideGraspsCloseToTable(const std::vector<GraspSet>& hand_set_list)
+std::vector<GraspSet> GraspDetector::filterGraspsApproach(const std::vector<GraspSet>& hand_set_list)
 {
-  const double APPROACH_LENGTH = 0.05;
-
   int remaining = 0;
   std::vector<GraspSet> hand_set_list_out;
-  Eigen::Vector3d vert_axis_vec;
-  vert_axis_vec << vert_axis_[0], vert_axis_[1], vert_axis_[2];
+  Eigen::Vector3d axis_vec;
+  axis_vec << filter_axis_[0], filter_axis_[1], filter_axis_[2];
 
   for (int i = 0; i < hand_set_list.size(); i++)
   {
@@ -440,11 +443,9 @@ std::vector<GraspSet> GraspDetector::filterSideGraspsCloseToTable(const std::vec
     {
       if (is_valid(j))
       {
-        double angle = fabs(vert_axis_vec.transpose() * hands[i].getApproach());
-        double dist = fabs((hands[i].getGraspBottom() - APPROACH_LENGTH*hands[i].getApproach())(2)) - table_height_;
+        double angle = axis_vec.transpose() * hands[j].getApproach();
 
-        // This is a side grasps that is too close to the table.
-        if (angle > angle_thresh_ && dist < table_thresh_)
+        if (angle >= angle_thresh_)
         {
           is_valid(j) = false;
         }
@@ -463,7 +464,7 @@ std::vector<GraspSet> GraspDetector::filterSideGraspsCloseToTable(const std::vec
     }
   }
 
-  ROS_INFO_STREAM("# grasps that are not too close to the table: " << remaining);
+  ROS_INFO_STREAM("# grasps remaining after approach filter: " << remaining);
 
   return hand_set_list_out;
 }

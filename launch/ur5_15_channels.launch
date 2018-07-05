@@ -25,8 +25,8 @@
     <!-- Plotting parameters -->
     <param name="plot_normals" value="false" />
     <param name="plot_samples" value="false" />
-    <param name="plot_candidates" value="false" />
-    <param name="plot_filtered_grasps" value="false" />
+    <param name="plot_candidates" value="true" />
+    <param name="plot_filtered_grasps" value="true" />
     <param name="plot_valid_grasps" value="false" />
     <param name="plot_clusters" value="false" />
     <param name="plot_selected_grasps" value="false" />
@@ -40,7 +40,7 @@
     <rosparam param="camera_position"> [0, 0, 0] </rosparam>
             
     <!-- General parameters -->
-    <param name="num_samples" value="200" />
+    <param name="num_samples" value="50" />
     <param name="num_threads" value="12" />
     
     <!-- Parameters for local grasp candidate search -->
@@ -50,16 +50,14 @@
     <!-- Filtering of grasp candidates -->
     <param name="filter_grasps" value="true" /> <!-- on workspace and robot hand aperture -->
     <!-- <rosparam param="workspace_grasps"> [-0.3, 0.3, 0.20, 1.0, -0.26, 0.50] </rosparam> -->
-    <rosparam param="workspace_grasps"> [-0.4, 0.4, 0.25, 1.3, -0.4, 0.5] </rosparam>
+    <rosparam param="workspace_grasps"> [-0.4, 0.4, 0.25, 1.3, -0.8, 0.5] </rosparam>
     <param name="filter_half_antipodal" value="false"/> <!-- on half antipodal -->
     
-    <!-- Filtering of grasps which are too low on (i.e. too close to) table -->
-    <param name="filter_table_side_grasps" value="false" />
-    <rosparam param="vertical_axis"> [0, 0, 1] </rosparam>
-    <param name="angle_thresh" value="0.1" />
-    <param name="table_height" value="0.0" />
-    <param name="table_thresh" value="0.05" />
-    
+    <!-- Filtering of grasps based on their approach direction -->
+    <param name="filter_grasps_approach" value="true" />
+    <rosparam param="filter_axis"> [0, -1, 0] </rosparam>
+    <param name="angle_thresh" value="0.6" />
+
     <!-- Grasp image creation -->
     <param name="create_image_batches" value="false" /> <!-- creates grasp images in batches (less memory usage) -->
     <param name="remove_plane_before_image_calculation" value="true" /> <!-- removes table plane from point cloud to speed up shadow computations -->
